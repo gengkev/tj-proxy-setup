@@ -25,18 +25,16 @@ var CONTENT_ACTIONS_PROXY_OFF = [
 	})
 ];
 
-function getOptionPageAction(callback) {
-	callback(localStorage['optionPageAction'] === 'true');
+function getOptions(callback) {
+	callback({
+		optionPageAction: localStorage['optionPageAction'] === 'true',
+		optionProxy: localStorage['optionProxy'] === 'true'
+	});
 }
-function setOptionPageAction(value, callback) {
-	localStorage['optionPageAction'] = value;
-	callback(true);
-}
-function getOptionProxy(callback) {
-	callback(localStorage['optionProxy'] == 'true');
-}
-function setOptionProxy(value, callback) {
-	localStorage['optionProxy'] = value;
+function setOptions(items, callback) {
+	for (var key in items) {
+		localStorage[key] = items[key];
+	}
 	callback(true);
 }
 
@@ -54,14 +52,8 @@ function enableProxy(callback) {
 			},
 			scope: 'regular'
 		}, function() {
-			configureDeclarativeContent(true, undefined, function(result) {
-				if (!result) {
-					callback(false);
-					return;
-				}
-				setOptionProxy(true, function(result2) {
-					callback(result2);
-				});
+			setOptions({optionProxy: true}, function(result) {
+				callback(result);
 			});
 		});
 	});
@@ -70,92 +62,66 @@ function enableProxy(callback) {
 function disableProxy(callback) {
 	console.log(">> DISABLING PROXY");
 	chrome.proxy.settings.clear({scope: 'regular'}, function() {
-		configureDeclarativeContent(false, undefined, function(result) {
-			if (!result) {
-				callback(false);
-				return;
-			}
-			setOptionProxy(false, function(result2) {
-				callback(result2);
-			});
+		setOptions({optionProxy: false}, function(result) {
+			callback(result);
 		});
 	});
 }
 
 function enablePageAction(callback) {
 	console.log(">> ENABLING PAGE ACTION");
-	configureDeclarativeContent(undefined, true, function(result) {
-		if (!result) {
-			callback(false);
-			return;
-		}
-		setOptionPageAction(true, function(result2) {
-			callback(result2);
-		});
+	setOptions({optionPageAction: true}, function(result) {
+		callback(result);
 	});
 }
 
 function disablePageAction(callback) {
 	console.log(">> DISABLING PAGE ACTION");
-	configureDeclarativeContent(undefined, false, function(result) {
-		if (!result) {
-			callback(false);
-			return;
-		}
-		setOptionPageAction(false, function(result2) {
-			callback(result2);
-		});
+	setOptions({optionPageAction: false}, function(result) {
+		callback(result);
 	});
 }
 
 // Update declarative content settings
 // That is, whether to show the page action on certain pages and what color it should be
-function configureDeclarativeContent(proxyEnabled, pageActionEnabled, callback) {
-	if (typeof proxyEnabled === 'undefined') {
-		getOptionProxy(function(newProxyEnabled) {
-			configureDeclarativeContent(newProxyEnabled, pageActionEnabled, callback);
-		});
-		return;
-	}
-	else if (typeof pageActionEnabled === 'undefined') {
-		getOptionPageAction(function(newPageActionEnabled) {
-			configureDeclarativeContent(proxyEnabled, newPageActionEnabled, callback);
-		});
-		return;
-	}
+function configureDeclarativeContent(callback) {
+	getOptions(function(items) {
+		var proxyEnabled = items['optionProxy'];
+		var pageActionEnabled = items['optionPageAction'];
 
-	chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-		if (!pageActionEnabled) {
-			callback(true);
-			return; // we're done
-		}
-
-		getPacScript(function(text) {
-			if (text === null) {
-				callback(false);
-				return;
-			}
-
-			var hosts = getHostsFromPacScript(text);
-			if (hosts.length === 0) {
-				callback(false);
-				return;
-			}
-
-			var rule1 = {
-				conditions: hosts.map(function(host) {
-					return new chrome.declarativeContent.PageStateMatcher({
-						pageUrl: { hostSuffix: host }
-					});
-				}),
-				actions: proxyEnabled ? CONTENT_ACTIONS_PROXY_ON : CONTENT_ACTIONS_PROXY_OFF
-			};
-
-			console.log("rule", rule1);
-
-			// add page action rule
-			chrome.declarativeContent.onPageChanged.addRules([rule1], function() {
+		chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
+			if (!pageActionEnabled) {
 				callback(true);
+				return; // we're done
+			}
+
+			getPacScript(function(text) {
+				if (text === null) {
+					callback(false);
+					return;
+				}
+
+				var hosts = getHostsFromPacScript(text);
+				if (hosts.length === 0) {
+					callback(false);
+					return;
+				}
+
+				var rule1 = {
+					conditions: hosts.map(function(host) {
+						return new chrome.declarativeContent.PageStateMatcher({
+							pageUrl: { hostSuffix: host }
+						});
+					}),
+					actions: proxyEnabled ? CONTENT_ACTIONS_PROXY_ON : CONTENT_ACTIONS_PROXY_OFF
+				};
+
+				console.log("rule", rule1);
+
+				// add page action rule
+				chrome.declarativeContent.onPageChanged.addRules([rule1], function() {
+					callback(true);
+				});
 			});
 		});
 	});
@@ -164,7 +130,15 @@ function configureDeclarativeContent(proxyEnabled, pageActionEnabled, callback) 
 function getPacScript(callback) {
 	var cached = localStorage['pacScript'];
 	if (typeof cached === 'undefined') {
-		fetchPacScript(callback);
+		fetchPacScript(function(text) {
+			if (text === null) {
+				// network didn't work, local backup
+				fetchLocalPacScript(callback);
+			} else {
+				localStorage['pacScript'] = text;
+				callback(text);
+			}
+		});
 	} else {
 		callback(cached);
 	}
@@ -198,17 +172,12 @@ function fetchPacScript(callback) {
 		}
 
 		console.log("got pac script, length", this.responseText.length);
-
-		// cache in localStorage
-		localStorage['pacScript'] = this.responseText;
 		callback(this.responseText);
 	};
 	xhr.onerror = function(e) {
 		console.error("fetch pac script failed: error", e);
 		console.log("xhr was", this);
-
-		// try the local version as backup
-		fetchLocalPacScript(callback);
+		callback(null);
 	};
 	xhr.open('GET', PROXY_PAC_FILE);
 	xhr.send();
@@ -226,30 +195,41 @@ function getHostsFromPacScript(text) {
 
 // Toggle proxy state when page action is clicked
 chrome.pageAction.onClicked.addListener(function(tab) {
-	getOptionProxy(function(proxyEnabled) {
+	function defaultCallback(tabId, result) {
+		if (!result) {
+			console.error("oh no, result is false. continuing?");
+		}
+		configureDeclarativeContent(function(result2) {
+			if (!result2) {
+				console.error("oh no, result2 is false. continuing?");
+			}
+			chrome.tabs.reload(tab.id);
+		});
+	}
+	
+	getOptions(function(items) {
+		var proxyEnabled = items['optionProxy'];
 		console.log(">> PAGE ACTION CLICK in tab", tab.id, proxyEnabled);
 		if (proxyEnabled) {
-			disableProxy(function() {
-				chrome.tabs.reload(tab.id);
-			});
+			disableProxy(defaultCallback.bind(this, tab.id));
 		} else {
-			enableProxy(function() {
-				chrome.tabs.reload(tab.id);
-			});
+			enableProxy(defaultCallback.bind(this, tab.id));
 		}
 	});
 });
 
 // Enable or disable the proxy according to the existing setting
-function configureProxy() {
-	getOptionProxy(function(result) {
-		if (result) {
-			enableProxy(function() {
+function configureProxy(callback) {
+	getOptions(function(items) {
+		if (items['optionProxy']) {
+			enableProxy(function(result) {
 				console.log("configured enableProxy in onInstalled");
+				callback(result);
 			});
 		} else {
-			disableProxy(function() {
+			disableProxy(function(result) {
 				console.log("configured disableProxy in onInstalled");
+				callback(result);
 			});
 		}
 	});
@@ -258,18 +238,18 @@ function configureProxy() {
 chrome.runtime.onInstalled.addListener(function(details) {
 	console.log("onInstalled at " + (new Date()));
 
-	// first install: set default values
-	// this is cheating, but most reliable for now
-	if (typeof localStorage['optionProxy'] === 'undefined') {
-		localStorage['optionProxy'] = true;
-	}
-	if (typeof localStorage['optionPageAction'] === 'undefined') {
-		localStorage['optionPageAction'] = true;
-	}
+	// Downlaod the PAC script initially.
+	fetchPacScript(function(text) {
+		console.log("updated pac script");
+		localStorage['pacScript'] = text;
 
-	// Also calls configureDeclarativeContent, to enable page action showing.
-	// Which calls fetchPacScript. Both are necessary on install!
-	configureProxy();
+		configureProxy(function(result) {
+			configureDeclarativeContent(function(result2) {
+				console.log("configureProxy/configureDeclarativeContent in onInstalled",
+							result, result2);
+			});
+		});
+	});
 });
 
 chrome.runtime.onStartup.addListener(function(details) {
@@ -279,26 +259,34 @@ chrome.runtime.onStartup.addListener(function(details) {
 	// (This is also when the browser downloads the PAC file)
 	fetchPacScript(function(text) {
 		console.log("updated pac script", text);
+		localStorage['pacScript'] = text;
 	});
 });
 
-
 // handle messages from other pages
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	function defaultCallback(result) {
+		if (!result) {
+			sendResponse(false);
+			return;
+		}
+		configureDeclarativeContent(sendResponse);
+	}
+
 	if (request.type == "enablePageAction") {
-		enablePageAction(sendResponse);
+		enablePageAction(defaultCallback);
 		return true;
 	}
 	else if (request.type == "disablePageAction") {
-		disablePageAction(sendResponse);
+		disablePageAction(defaultCallback);
 		return true;
 	}
 	else if (request.type == "enableProxy") {
-		enableProxy(sendResponse);
+		enableProxy(defaultCallback);
 		return true;
 	}
 	else if (request.type == "disableProxy") {
-		disableProxy(sendResponse);
+		disableProxy(defaultCallback);
 		return true;
 	}
 	else {

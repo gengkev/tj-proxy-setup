@@ -1,9 +1,14 @@
-
-function getOptionPageAction(callback) {
-	callback(localStorage["optionPageAction"] === 'true');
+function getOptions(callback) {
+	callback({
+		optionPageAction: localStorage['optionPageAction'] === 'true',
+		optionProxy: localStorage['optionProxy'] === 'true'
+	});
 }
-function getOptionProxy(callback) {
-	callback(localStorage["optionProxy"] == 'true');
+function setOptions(items, callback) {
+	for (var key in items) {
+		localStorage[key] = items[key];
+	}
+	callback(true);
 }
 
 // Convenience functions
@@ -38,11 +43,9 @@ function displayMessage(message) {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-	getOptionPageAction(function(result) {
-		optionPageActionEl.checked = result;
-	});
-	getOptionProxy(function(result) {
-		optionProxyEl.checked = result;
+	getOptions(function(items) {
+		optionPageActionEl.checked = items['optionPageAction'];
+		optionProxyEl.checked = items['optionProxy'];
 	});
 
 	document.getElementById("name_version").textContent = getNameVersion();
