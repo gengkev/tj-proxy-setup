@@ -4,12 +4,12 @@ var PROXY_PAC_FILE = 'https://iodine.tjhsst.edu/www/proxy.pac';
 var PROXY_PAC_FILE_LOCAL = chrome.runtime.getURL('proxy.pac');
 
 var ICON_PROXY_OFF_PATH = {
-	'19': 'key19_off.png',
-	'38': 'key38_off.png'
+	'19': 'img/key19_off.png',
+	'38': 'img/key38_off.png'
 };
 var ICON_PROXY_ON_PATH = {
-	'19': 'key19.png',
-	'38': 'key38.png'
+	'19': 'img/key19.png',
+	'38': 'img/key38.png'
 };
 
 var CONTENT_ACTIONS_PROXY_ON = [
