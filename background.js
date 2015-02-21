@@ -259,19 +259,17 @@ chrome.runtime.onInstalled.addListener(function(details) {
 	console.log("onInstalled at " + (new Date()));
 
 	// first install: set default values
-	if (details.reason === 'install') {
-		console.log(">> FIRST INSTALL, setting default values");
-		setOptionPageAction(true, function(result) {
-			setOptionProxy(true, function(result) {
-				configureProxy();
-			});
-		});
+	// this is cheating, but most reliable for now
+	if (typeof localStorage['optionProxy'] === 'undefined') {
+		localStorage['optionProxy'] = true;
 	}
-	else {
-		// Also calls configureDeclarativeContent, to enable page action showing.
-		// Which calls fetchPacScript. Both are necessary on install!
-		configureProxy();
+	if (typeof localStorage['optionPageAction'] === 'undefined') {
+		localStorage['optionPageAction'] = true;
 	}
+
+	// Also calls configureDeclarativeContent, to enable page action showing.
+	// Which calls fetchPacScript. Both are necessary on install!
+	configureProxy();
 });
 
 chrome.runtime.onStartup.addListener(function(details) {
