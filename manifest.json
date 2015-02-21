@@ -1,0 +1,12 @@
+{
+	"manifest_version": 2,
+	"name": "TJHSST Proxy Setup (unofficial)",
+	"version": "0.1",
+	"description": "Configures Chrome to use TJHSST's proxy servers to access library databases.",
+	
+	"background": {
+		"scripts": ["background.js"],
+		"persistent": false
+	},
+	"permissions": ["proxy"]
+}
