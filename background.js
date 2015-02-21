@@ -275,10 +275,10 @@ chrome.runtime.onInstalled.addListener(function(details) {
 chrome.runtime.onStartup.addListener(function(details) {
 	console.log("onStartup at " + (new Date()));
 
-	// Download the proxy hosts when browser starts up
-	// (This is when the browser downloads the PAC file)
-	updateProxyHosts(function(hosts) {
-		console.log("updated proxy hosts", hosts)
+	// Download the PAC script when browser starts up
+	// (This is also when the browser downloads the PAC file)
+	fetchPacScript(function(text) {
+		console.log("updated pac script", text);
 	});
 });
 
