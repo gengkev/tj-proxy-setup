@@ -16,6 +16,10 @@ var enableProxy = chrome.runtime.sendMessage.bind(
 var disableProxy = chrome.runtime.sendMessage.bind(
 	this, {type: "disableProxy"});
 
+function getNameVersion() {
+	var manifest = chrome.runtime.getManifest();
+	return manifest.name + ", version " + manifest.version;
+}
 	
 var optionPageActionEl = document.getElementById("optionPageAction");
 var optionProxyEl = document.getElementById("optionProxy");
@@ -40,6 +44,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	getOptionProxy(function(result) {
 		optionProxyEl.checked = result;
 	});
+
+	document.getElementById("name_version").textContent = getNameVersion();
 
 	optionPageActionEl.addEventListener('change', function() {
 		if (optionPageActionEl.checked) {
