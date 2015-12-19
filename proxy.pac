@@ -28,7 +28,7 @@ function FindProxyForURL(url, host)
 		dnsDomainIs(host, "jchemed.chem.wisc.edu") ||
 		dnsDomainIs(host, "www.jstor.org") ||
 		dnsDomainIs(host, "web.lexis-nexis.com") ||
-		dnsDomainIs(host, "oed.com") ||
+		dnsDomainIs(host, ".oed.com") ||
 		dnsDomainIs(host, "poll.orspub.com") ||
 		dnsDomainIs(host, "proquestk12.com") ||
 		dnsDomainIs(host, "proquest.com") ||
@@ -44,15 +44,16 @@ function FindProxyForURL(url, host)
 		dnsDomainIs(host, ".tumblebooks.com") ||
 		dnsDomainIs(host, "hsus.cambridge.org") ||
 		dnsDomainIs(host, ".aps.org") ||
-		dnsDomainIs(host, "Rm124Camera1.tjhsst.edu") ||
-		dnsDomainIs(host, "Rm124Camera2.tjhsst.edu") ||
-		dnsDomainIs(host, "Rm124Camera3.tjhsst.edu") ||
-		dnsDomainIs(host, "Rm124IpVideo.tjhsst.edu") ||
+		dnsDomainIs(host, "rm124camera1.tjhsst.edu") ||
+		dnsDomainIs(host, "rm124camera2.tjhsst.edu") ||
+		dnsDomainIs(host, "rm124camera3.tjhsst.edu") ||
+		dnsDomainIs(host, "rm124ipvideo.tjhsst.edu") ||
 		dnsDomainIs(host, ".humanitiesebook.org") ||
 		dnsDomainIs(host, ".lib.umich.edu") ||
 		dnsDomainIs(host, ".hdl.handle.net") ||
 		dnsDomainIs(host, ".jove.com") ||
 		dnsDomainIs(host, ".marshallcavendishdigital.com") ||
+		dnsDomainIs(host, ".cavendishsquaredigital.com") ||
 		dnsDomainIs(host, ".salempress.com") ||
 		dnsDomainIs(host, "booksinprint.com") ||
 		dnsDomainIs(host, ".booksinprint.com") ||
