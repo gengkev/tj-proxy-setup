@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "TJHSST Proxy Setup (unofficial)",
 	"description": "Uses the TJHSST proxy servers to access library databases.",
-	"version": "0.2.2",
+	"version": "0.2.3",
 	"minimum_chrome_version": "40",
 	
 	"icons": {
@@ -27,6 +27,6 @@
 	"permissions": [
 		"proxy",
 		"declarativeContent",
-		"https://iodine.tjhsst.edu/www/proxy.pac"
+		"https://pac.tjhsst.edu/"
 	]
 }

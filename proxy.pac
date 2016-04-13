@@ -1,5 +1,7 @@
 /***********************************************************
 ** TJHSST Proxy Auto-Configuration Script                 **
+** For instructions on setting up this script, visit      **
+** https://proxysetup.tjhsst.edu or check Intranet.       **
 ** For use with TJHSST school databases                   **
 ** Use is restricted to TJHSST students and faculty ONLY. **
 ** All other use is prohibited.                           **

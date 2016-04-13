@@ -1,6 +1,6 @@
 // If you're reading this, I apologize... welcome to callback hell...
 
-var PROXY_PAC_FILE = 'https://iodine.tjhsst.edu/www/proxy.pac';
+var PROXY_PAC_FILE = 'https://pac.tjhsst.edu';
 var PROXY_PAC_FILE_LOCAL = chrome.runtime.getURL('proxy.pac');
 
 var ICON_PROXY_OFF_PATH = {
